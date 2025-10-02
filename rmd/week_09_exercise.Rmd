@@ -5,7 +5,7 @@ output:
     theme: architect
     toc: true
     number_sections: true
-author: "VOTRE_NOM_ICI"
+author: "Ntumba Nkengesha Nella"
 date: "2024-03-13"
 editor_options: 
   chunk_output_type: inline
@@ -68,7 +68,7 @@ Utilisez la fonction `summary()` pour examiner les plages de dates dans cet ense
 
 ```{r}
 # Examiner les plages de variables
-"ÉCRIVEZ VOTRE CODE ICI"
+summary(select(ebola_wa, starts_with("date")))
 ```
 
 Vous pouvez voir que les cas sont enregistrés du début de 2014 à la mi-2015. Les variables `date_of_hospitalisation` et `date_of_onset` sont les plus complètes (elles n'ont pas de NA), donc nous les utiliserons pour la visualisation dans cet exercice.
@@ -80,7 +80,8 @@ Premièrement, créez un histogramme de base avec 12 barres, montrant la distrib
 -   Choisissez une couleur de remplissage personnalisée et une couleur de contour pour les barres de votre histogramme (utilisez les couleurs de votre choix).
 
 ```{r}
-"ÉCRIVEZ VOTRE CODE ICI"
+ggplot(ebola_wa, aes(x = date_of_hospitalisation)) +
+  geom_histogram(bins = 12, fill = "steelblue", color = "black")
 ```
 
 Nous pouvons définir la largeur des compartiments pour cet histogramme comme d'habitude. Dans ce cas, puisque la variable est une date, la largeur des compartiments représente le **nombre de jours**.
@@ -88,13 +89,18 @@ Nous pouvons définir la largeur des compartiments pour cet histogramme comme d'
 -   Ajustez votre code pour tracer un histogramme avec des compartiments hebdomadaires (tous les 7 jours).
 
 ```{r}
-"ÉCRIVEZ VOTRE CODE ICI"
+ggplot(ebola_wa, aes(x = date_of_hospitalisation)) +
+  geom_histogram(binwidth = 7, fill = "tomato", color = "white")
 ```
 
 -   Maintenant, élaborez le code du bloc précédent pour ajouter un titre de graphique pertinent et des étiquettes d'axe.
 
 ```{r}
-"ÉCRIVEZ VOTRE CODE ICI"
+ggplot(ebola_wa, aes(x = date_of_hospitalisation)) +
+  geom_histogram(binwidth = 7, fill = "darkgreen", color = "white") +
+  labs(title = "Distribution des hospitalisations Ebola",
+       x = "Date d'hospitalisation",
+       y = "Nombre de cas")
 ```
 
 Lorsque vous tracez des dates, parfois les étiquettes d'axe par défaut peuvent ne pas être idéales. Dans ce graphique, `ggplot()` étiquette automatiquement l'axe des x tous les 4 mois, mais nous pourrions vouloir modifier cela. Dans les leçons préparatoires, vous avez appris à personnaliser les ruptures d'échelle en utilisant `scale_x_continuous(breaks = ...)`, mais pour les variables de date, nous utiliserons une méthode légèrement différente.
@@ -108,8 +114,12 @@ Vous pouvez personnaliser la fréquence des étiquettes de l'axe des dates en ut
 Par exemple, disons que nous voulons étiqueter l'axe tous les **deux mois**. Pour personnaliser les étiquettes, ajoutez simplement cette couche à votre code précédent :
 
 ```{r}
-"COLLEZ VOTRE CODE HISTOGRAMME ICI" +
-  scale_x_date(date_breaks = "2 months")
+ggplot(ebola_wa, aes(x = date_of_hospitalisation)) +
+  geom_histogram(binwidth = 7, fill = "purple", color = "white") +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %y") +
+  labs(title = "Hospitalisations Ebola (2014-2015)",
+       x = "Date",
+       y = "Nombre de cas")
 ```
 
 *Comme vous pouvez pouvez le constater, les spécifications valables de l'argument `date_breaks` en anglais et peuvent être 'sec', 'min', 'hour', 'day', 'week', 'month' ou 'year', éventuellement suivies de 's'.*
@@ -119,7 +129,11 @@ Vous remarquerez peut-être que les étiquettes des graduations de l'axe (alias 
 Pour personnaliser le format des dates, nous pouvons ajouter `date_labels` à l'intérieur de `scale_x_date()` et définir un format de date spécifique, comme ceci :
 
 ```{r}
-"COLLEZ_VOTRE_CODE_ICI" +
+ggplot(ebola_wa, aes(x = date_of_hospitalisation)) +
+  geom_histogram(binwidth = 7, fill = "darkgreen", color = "white") +
+  labs(title = "Distribution des hospitalisations Ebola",
+       x = "Date d'hospitalisation",
+       y = "Nombre de cas") +
   scale_x_date(date_breaks = "2 months", 
                date_labels = "%B %y") # voir le tableau ci-dessous pour explication
 ```
@@ -131,7 +145,13 @@ Lors de la personnalisation des formats de date dans {ggplot2}, nous utilisons d
 Maintenant, modifiez le format de date des étiquettes de l'axe sur l'histogramme précédent une dernière fois pour afficher **LES NOMS DES MOIS ABRÉGÉS** pour chaque mois.
 
 ```{r}
-"ÉCRIVEZ_VOTRE_CODE_ICI"
+ggplot(ebola_wa, aes(x = date_of_hospitalisation)) +
+  geom_histogram(binwidth = 7, fill = "steelblue", color = "white") +
+  labs(title = "Hospitalisations Ebola (2014-2015)",
+       x = "Date d'hospitalisation",
+       y = "Nombre de cas") +
+  scale_x_date(date_breaks = "1 month", 
+               date_labels = "%b")
 ```
 
 # Graphique de série temporelle avec `geom_line()`
@@ -145,7 +165,9 @@ Tout d'abord, créez un dataframe résumé montrant le nombre de cas pour chaque
 INDICE : Il y a plusieurs façons d'effectuer cette manipulation de données. Pour la méthode la plus efficace, consultez ces [notes de cours](https://the-graph-courses.github.io/data_untangled_wp/lessons/fr_ls05_groupby_summarize.html#92_dplyr::count()).
 
 ```{r}
-ebola_wa_summary <- "ÉCRIVEZ_VOTRE_CODE_ICI"
+ebola_wa_summary <- ebola_wa %>%
+  count(date_of_onset, outcome) %>%
+  na.omit()
 
 ebola_wa_summary
 ```
@@ -157,7 +179,8 @@ ebola_wa_summary
 Maintenant, tracez un graphique linéaire montrant le nombre de cas par date d'apparition, et colorez les lignes par résultat.
 
 ```{r}
-"ÉCRIVEZ_VOTRE_CODE_ICI"
+ggplot(ebola_wa_summary, aes(x = date_of_onset, y = n, color = outcome)) +
+  geom_line()
 ```
 
 **Point de contrôle** : Votre graphique devrait maintenant avoir deux lignes : une pour les décès et une pour les cas rétablis.
@@ -173,7 +196,15 @@ Ensuite, apportez les modifications suivantes :
 4)  Changez le titre de la légende de "outcome" à "Résultat".
 
 ```{r}
-"ÉCRIVEZ_VOTRE_CODE_ICI"
+ggplot(ebola_wa_summary, aes(x = date_of_onset, y = n, color = outcome)) +
+  geom_line(size = 1.2, alpha = 0.8) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %y") +
+  labs(title = "Incidence Ebola par date d'apparition des symptômes",
+       subtitle = "Afrique de l'Ouest, 2014-2015",
+       x = "Date d'apparition",
+       y = "Nombre de cas",
+       color = "Résultat") +
+  theme_minimal()
 ```
 
 # Conclusion
@@ -200,7 +231,15 @@ Tout d'abord, essayez de personnaliser les couleurs du graphique linéaire que v
 
 ```{r}
 # Ajustement des couleurs en utilisant scale_color_manual() 
-"ÉCRIVEZ_VOTRE_CODE_ICI"
+ggplot(ebola_wa_summary, aes(x = date_of_onset, y = n, color = outcome)) +
+  geom_line(size = 1.2, alpha = 0.8) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %y") +
+  scale_color_manual(values = c("Death" = "red", "Recover" = "darkgreen")) +
+  labs(title = "Cas Ebola par issue clinique",
+       x = "Date d'apparition",
+       y = "Nombre de cas",
+       color = "Résultat")
+
 ```
 
 Alors que `scale_color_manual()` nous permet de définir manuellement les couleurs, il est parfois difficile de choisir des couleurs visuellement attrayantes pour communiquer vos graphiques de manière significative.
@@ -215,5 +254,13 @@ Personnalisez les couleurs de votre graphique linéaire en utilisant la fonction
 
 ```{r}
  # Ajustement des couleurs en utilisant scale_color_brewer() 
-"ÉCRIVEZ_VOTRE_CODE_ICI"
+ggplot(ebola_wa_summary, aes(x = date_of_onset, y = n, color = outcome)) +
+  geom_line(size = 1.2, alpha = 0.8) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %y") +
+  scale_color_brewer(palette = "Set1") +
+  labs(title = "Cas Ebola par issue clinique (palette Set1)",
+       x = "Date d'apparition",
+       y = "Nombre de cas",
+       color = "Résultat")
+
 ```
